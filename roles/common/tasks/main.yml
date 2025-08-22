@@ -1,0 +1,111 @@
+---
+# Make apt non-interactive for packages that try to prompt
+- name: Set APT to noninteractive for this play
+  ansible.builtin.set_fact:
+    apt_env:
+      DEBIAN_FRONTEND: noninteractive
+
+# Heal any interrupted dpkg transactions (no-op if none)
+- name: Ensure dpkg is configured if previously interrupted
+  ansible.builtin.command: dpkg --configure -a
+  changed_when: false
+  failed_when: false
+  environment: "{{ apt_env }}"
+  become: yes
+
+# Clear stale indexes (fixes corrupted apt lists)
+- name: Remove stale apt lists (safe)
+  ansible.builtin.file:
+    path: /var/lib/apt/lists
+    state: absent
+  become: yes
+
+- name: Recreate apt lists directory
+  ansible.builtin.file:
+    path: /var/lib/apt/lists/partial
+    state: directory
+    mode: "0755"
+  become: yes
+
+# ONE cache refresh only, with retries
+- name: Update apt cache (robust)
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 0  # Force update since we cleared the cache
+    force_apt_get: yes
+  register: apt_update
+  retries: 5
+  delay: 10
+  until: apt_update is succeeded
+  environment: "{{ apt_env }}"
+  become: yes
+
+# Install packages in groups to handle dependencies better
+- name: Install basic system packages
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+      - git
+    state: present
+    force_apt_get: yes
+    update_cache: no  # Don't update cache again
+  register: basic_pkg_install
+  retries: 3
+  delay: 5
+  until: basic_pkg_install is succeeded
+  environment: "{{ apt_env }}"
+  become: yes
+
+- name: Install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    force_apt_get: yes
+    update_cache: no  # Don't update cache again
+  register: nginx_install
+  retries: 3
+  delay: 5
+  until: nginx_install is succeeded
+  environment: "{{ apt_env }}"
+  become: yes
+
+- name: Install PostgreSQL packages
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+    state: present
+    force_apt_get: yes
+    update_cache: no  # Don't update cache again
+  register: postgres_install
+  retries: 5
+  delay: 10
+  until: postgres_install is succeeded
+  environment: "{{ apt_env }}"
+  become: yes
+
+- name: Ensure PostgreSQL service is started and enabled
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Create application user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    system: yes
+    create_home: yes
+    home: "/home/{{ app_user }}"
+    shell: /usr/sbin/nologin
+
+- name: Create app directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"

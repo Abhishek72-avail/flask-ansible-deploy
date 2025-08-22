@@ -1,0 +1,28 @@
+---
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
+- name: Install nginx configuration for Flask app
+  ansible.builtin.template:
+    src: flaskapp.conf.j2
+    dest: "/etc/nginx/sites-available/{{ app_name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart nginx
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ app_name }}.conf"
+    dest: "/etc/nginx/sites-enabled/{{ app_name }}.conf"
+    state: link
+  notify: restart nginx
+
+- name: Ensure nginx is started and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
