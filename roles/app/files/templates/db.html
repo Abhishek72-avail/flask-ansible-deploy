@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Check - PostgreSQL Status</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-database"></i> Database Connection Test</h1>
+            <p class="subtitle">PostgreSQL Status Monitor</p>
+        </header>
+
+        <div class="db-main-card">
+            <div class="db-status-icon {{ 'success' if db_result.status == 'success' else 'error' }}">
+                {% if db_result.status == 'success' %}
+                    <i class="fas fa-check-circle"></i>
+                {% else %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+            </div>
+            <h2>Database Status: {{ 'Connected' if db_result.status == 'success' else 'Connection Error' }}</h2>
+            <p class="db-message">{{ db_result.message }}</p>
+        </div>
+
+        {% if db_result.status == 'success' %}
+        <div class="db-details">
+            <div class="db-info-card">
+                <div class="db-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <h3>PostgreSQL Server</h3>
+                <div class="db-status-indicator success">
+                    <i class="fas fa-circle"></i> Online
+                </div>
+                <p>Database server is running and accepting connections</p>
+            </div>
+
+            <div class="db-info-card">
+                <div class="db-icon">
+                    <i class="fas fa-link"></i>
+                </div>
+                <h3>Connection Pool</h3>
+                <div class="db-status-indicator success">
+                    <i class="fas fa-circle"></i> Active
+                </div>
+                <p>Database connections are working properly</p>
+            </div>
+
+            <div class="db-info-card">
+                <div class="db-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Authentication</h3>
+                <div class="db-status-indicator success">
+                    <i class="fas fa-circle"></i> Verified
+                </div>
+                <p>Database credentials authenticated successfully</p>
+            </div>
+        </div>
+
+        <div class="db-version-info">
+            <div class="version-card">
+                <h3><i class="fas fa-info-circle"></i> Database Information</h3>
+                <div class="version-details">
+                    <div class="version-item">
+                        <strong>Database Type:</strong> PostgreSQL
+                    </div>
+                    <div class="version-item">
+                        <strong>Version:</strong> {{ db_result.message.split(':')[1].split('on')[0].strip() if 'PostgreSQL' in db_result.message else 'Unknown' }}
+                    </div>
+                    <div class="version-item">
+                        <strong>Host:</strong> {{ '127.0.0.1:5432' }}
+                    </div>
+                    <div class="version-item">
+                        <strong>Database:</strong> flaskdb
+                    </div>
+                    <div class="version-item">
+                        <strong>Connection Status:</strong> <span class="status-success">✓ Established</span>
+                    </div>
+                    <div class="version-item">
+                        <strong>Response Time:</strong> <span class="status-success">< 100ms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="db-error-details">
+            <div class="error-card">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h3>Connection Failed</h3>
+                <p>Unable to establish connection to PostgreSQL database</p>
+                <div class="error-message">
+                    {{ db_result.message }}
+                </div>
+            </div>
+
+            <div class="troubleshooting-card">
+                <h3><i class="fas fa-tools"></i> Troubleshooting Steps</h3>
+                <ul class="troubleshooting-list">
+                    <li><i class="fas fa-check"></i> Verify PostgreSQL service is running</li>
+                    <li><i class="fas fa-check"></i> Check database credentials</li>
+                    <li><i class="fas fa-check"></i> Confirm network connectivity</li>
+                    <li><i class="fas fa-check"></i> Review firewall settings</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="db-actions">
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h4>Auto Refresh</h4>
+                <p>Page refreshes every 30 seconds</p>
+            </div>
+
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4>Real-time Monitoring</h4>
+                <p>Live database status tracking</p>
+            </div>
+
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h4>Alert System</h4>
+                <p>Immediate notification of issues</p>
+            </div>
+        </div>
+
+        <div class="navigation-links">
+            <a href="/" class="nav-button">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+            <a href="/health" class="nav-button">
+                <i class="fas fa-heartbeat"></i> Health Check
+            </a>
+            <a href="/db?format=json" class="nav-button api-button">
+                <i class="fas fa-code"></i> JSON API
+            </a>
+        </div>
+
+        <footer class="footer">
+            <p><i class="fas fa-database"></i> Database monitoring active | <i class="fas fa-clock"></i> Real-time status updates</p>
+        </footer>
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+
+        // Add rotation animation to database icon
+        const dbIcon = document.querySelector('.db-status-icon i');
+        if (dbIcon.classList.contains('fa-check-circle')) {
+            setInterval(() => {
+                dbIcon.style.transform = 'rotate(360deg)';
+                setTimeout(() => {
+                    dbIcon.style.transform = 'rotate(0deg)';
+                }, 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

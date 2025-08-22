@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check - Flask Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-heartbeat"></i> System Health Check</h1>
+            <p class="subtitle">Application Status Monitor</p>
+        </header>
+
+        <div class="health-main-card">
+            <div class="health-status-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>System Status: {{ health.status }}</h2>
+            <p class="health-timestamp">Last checked: {{ health.timestamp }}</p>
+        </div>
+
+        <div class="health-details">
+            <div class="health-card">
+                <div class="health-icon flask-health">
+                    <i class="fab fa-python"></i>
+                </div>
+                <h3>Flask Application</h3>
+                <div class="health-status success">
+                    <i class="fas fa-circle"></i> {{ health.services.flask }}
+                </div>
+                <p>Python web framework running smoothly</p>
+            </div>
+
+            <div class="health-card">
+                <div class="health-icon gunicorn-health">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h3>Gunicorn Server</h3>
+                <div class="health-status success">
+                    <i class="fas fa-circle"></i> {{ health.services.gunicorn }}
+                </div>
+                <p>WSGI HTTP server operational</p>
+            </div>
+
+            <div class="health-card">
+                <div class="health-icon nginx-health">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Nginx Proxy</h3>
+                <div class="health-status success">
+                    <i class="fas fa-circle"></i> {{ health.services.nginx }}
+                </div>
+                <p>Reverse proxy server active</p>
+            </div>
+        </div>
+
+        <div class="health-metrics">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-info">
+                    <h4>Uptime Status</h4>
+                    <p>{{ health.uptime }}</p>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <div class="metric-info">
+                    <h4>Server Response</h4>
+                    <p>200 OK</p>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="metric-info">
+                    <h4>Security Status</h4>
+                    <p>Protected</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation-links">
+            <a href="/" class="nav-button">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+            <a href="/db" class="nav-button">
+                <i class="fas fa-database"></i> Database Check
+            </a>
+            <a href="/health?format=json" class="nav-button api-button">
+                <i class="fas fa-code"></i> JSON API
+            </a>
+        </div>
+
+        <footer class="footer">
+            <p><i class="fas fa-heartbeat"></i> Health monitoring active | <i class="fas fa-shield-alt"></i> System secure</p>
+        </footer>
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+
+        // Add pulse animation to main status icon
+        const statusIcon = document.querySelector('.health-status-icon i');
+        setInterval(() => {
+            statusIcon.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                statusIcon.style.transform = 'scale(1)';
+            }, 200);
+        }, 2000);
+    </script>
+</body>
+</html>

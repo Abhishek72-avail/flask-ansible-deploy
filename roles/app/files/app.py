@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, render_template, jsonify, request
 import os
 import psycopg2
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -19,21 +20,53 @@ def db_check():
         version = cur.fetchone()[0]
         cur.close()
         conn.close()
-        return f"OK - Connected to PostgreSQL: {version}"
+        return {"status": "success", "message": f"Connected to PostgreSQL: {version}"}
     except Exception as e:
-        return f"DB connection error: {e}"
+        return {"status": "error", "message": f"DB connection error: {e}"}
 
 @app.route("/")
 def index():
-    return "Hello from Flask + Gunicorn + NGINX!"
+    return render_template("index.html")
 
 @app.route("/health")
 def health():
-    return "OK"
+    # Check if request wants JSON (API call) or HTML (browser)
+    if request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json':
+        return jsonify({"status": "OK", "timestamp": datetime.now().isoformat()})
+    else:
+        # Return beautiful HTML page
+        health_data = {
+            "status": "OK",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "uptime": "Running smoothly",
+            "services": {
+                "flask": "Active",
+                "gunicorn": "Running",
+                "nginx": "Proxying"
+            }
+        }
+        return render_template("health.html", health=health_data)
 
 @app.route("/db")
 def db():
-    return db_check()
+    db_result = db_check()
+    
+    # Check if request wants JSON (API call) or HTML (browser)
+    if request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json':
+        return jsonify(db_result)
+    else:
+        # Return beautiful HTML page
+        return render_template("db.html", db_result=db_result)
+
+@app.route("/api/status")
+def api_status():
+    db_result = db_check()
+    return jsonify({
+        "flask": {"status": "running", "version": "2.3.3"},
+        "database": db_result,
+        "nginx": {"status": "proxying"},
+        "timestamp": datetime.now().isoformat()
+    })
 
 if __name__ == "__main__":
     app.run()

@@ -14,6 +14,45 @@
     group: "{{ app_user }}"
     mode: "0644"
 
+- name: Create templates directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}/templates"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+
+- name: Create static directories
+  ansible.builtin.file:
+    path: "{{ app_dir }}/static/{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0755"
+  loop:
+    - css
+    - images
+
+- name: Upload HTML templates
+  ansible.builtin.copy:
+    src: "templates/{{ item }}"
+    dest: "{{ app_dir }}/templates/{{ item }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+  loop:
+    - index.html
+    - health.html
+    - db.html
+
+- name: Upload CSS file
+  ansible.builtin.copy:
+    src: static/css/style.css
+    dest: "{{ app_dir }}/static/css/style.css"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0644"
+
 - name: Upload requirements.txt
   ansible.builtin.copy:
     src: requirements.txt
@@ -50,5 +89,5 @@
 - name: Enable and start {{ app_name }}
   ansible.builtin.service:
     name: "{{ app_name }}"
-    state: started
+    state: restarted
     enabled: yes

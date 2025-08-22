@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask + PostgreSQL + Nginx Stack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-server"></i> Full Stack Web Application</h1>
+            <p class="subtitle">Flask + PostgreSQL + Nginx + Gunicorn</p>
+        </header>
+
+        <div class="stack-showcase">
+            <div class="tech-card flask">
+                <div class="tech-logo">
+                    <i class="fab fa-python"></i>
+                </div>
+                <h3>Flask</h3>
+                <p>Python Web Framework</p>
+                <div class="status-indicator" id="flask-status">
+                    <i class="fas fa-circle"></i> Checking...
+                </div>
+            </div>
+
+            <div class="tech-card postgres">
+                <div class="tech-logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>PostgreSQL</h3>
+                <p>Relational Database</p>
+                <div class="status-indicator" id="postgres-status">
+                    <i class="fas fa-circle"></i> Checking...
+                </div>
+            </div>
+
+            <div class="tech-card nginx">
+                <div class="tech-logo">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Nginx</h3>
+                <p>Reverse Proxy Server</p>
+                <div class="status-indicator" id="nginx-status">
+                    <i class="fas fa-circle"></i> Active
+                </div>
+            </div>
+
+            <div class="tech-card gunicorn">
+                <div class="tech-logo">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h3>Gunicorn</h3>
+                <p>WSGI HTTP Server</p>
+                <div class="status-indicator" id="gunicorn-status">
+                    <i class="fas fa-circle"></i> Running
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> Application Info</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Framework:</strong> Flask 2.3.3
+                    </div>
+                    <div class="info-item">
+                        <strong>Database:</strong> PostgreSQL 14
+                    </div>
+                    <div class="info-item">
+                        <strong>Web Server:</strong> Nginx 1.18
+                    </div>
+                    <div class="info-item">
+                        <strong>WSGI Server:</strong> Gunicorn
+                    </div>
+                    <div class="info-item">
+                        <strong>Deployment:</strong> Ansible Automated
+                    </div>
+                    <div class="info-item">
+                        <strong>OS:</strong> Ubuntu 22.04 LTS
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3><i class="fas fa-chart-line"></i> System Status</h3>
+                <div id="system-status">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading system status...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="endpoints-section">
+            <h3><i class="fas fa-link"></i> Available Endpoints</h3>
+            <div class="endpoints-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-method">GET</div>
+                    <div class="endpoint-path">/</div>
+                    <div class="endpoint-desc">Main application page</div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-method">GET</div>
+                    <div class="endpoint-path">/health</div>
+                    <div class="endpoint-desc">Health check endpoint</div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-method">GET</div>
+                    <div class="endpoint-path">/db</div>
+                    <div class="endpoint-desc">Database connectivity test</div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-method">GET</div>
+                    <div class="endpoint-path">/api/status</div>
+                    <div class="endpoint-desc">Complete system status</div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><i class="fas fa-code"></i> Deployed with Ansible | <i class="fas fa-heart"></i> Made with Flask</p>
+        </footer>
+    </div>
+
+    <script>
+        // Function to update status indicators
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                // Update Flask status
+                const flaskStatus = document.getElementById('flask-status');
+                flaskStatus.innerHTML = '<i class="fas fa-circle"></i> Running';
+                flaskStatus.className = 'status-indicator status-success';
+                
+                // Update PostgreSQL status
+                const postgresStatus = document.getElementById('postgres-status');
+                if (data.database.status === 'success') {
+                    postgresStatus.innerHTML = '<i class="fas fa-circle"></i> Connected';
+                    postgresStatus.className = 'status-indicator status-success';
+                } else {
+                    postgresStatus.innerHTML = '<i class="fas fa-circle"></i> Error';
+                    postgresStatus.className = 'status-indicator status-error';
+                }
+                
+                // Update Nginx status (always active if we can reach this page)
+                const nginxStatus = document.getElementById('nginx-status');
+                nginxStatus.className = 'status-indicator status-success';
+                
+                // Update Gunicorn status (always running if Flask is responding)
+                const gunicornStatus = document.getElementById('gunicorn-status');
+                gunicornStatus.className = 'status-indicator status-success';
+                
+                // Update system status section
+                const systemStatus = document.getElementById('system-status');
+                systemStatus.innerHTML = `
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <strong>Flask:</strong> <span class="status-success">✓ ${data.flask.version}</span>
+                        </div>
+                        <div class="status-item">
+                            <strong>Database:</strong> <span class="${data.database.status === 'success' ? 'status-success' : 'status-error'}">
+                                ${data.database.status === 'success' ? '✓ Connected' : '✗ Error'}
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <strong>Nginx:</strong> <span class="status-success">✓ Proxying</span>
+                        </div>
+                        <div class="status-item">
+                            <strong>Last Check:</strong> ${new Date(data.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                const systemStatus = document.getElementById('system-status');
+                systemStatus.innerHTML = '<div class="status-error">Error loading system status</div>';
+            }
+        }
+        
+        // Update status on page load and every 30 seconds
+        updateStatus();
+        setInterval(updateStatus, 30000);
+    </script>
+</body>
+</html>
